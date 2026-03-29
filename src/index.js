@@ -1,8 +1,9 @@
-
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
-// src/worker.js
+// src/index.js
+var __defProp2 = Object.defineProperty;
+var __name2 = /* @__PURE__ */ __name((target, value) => __defProp2(target, "name", { value, configurable: true }), "__name");
 var STYLES = `*{margin:0;padding:0;box-sizing:border-box}
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400&display=swap');
 :root{--bg:#0a0a0a;--surface:#111;--surface2:#161616;--border:#1a1a1a;--border2:#252525;--text:#e5e5e5;--dim:#a3a3a3;--muted:#525252;--high:#FF2255;--med:#FF6B2B;--low:#4488FF}
@@ -72,6 +73,7 @@ async function ensureTables(db) {
   )`).run();
 }
 __name(ensureTables, "ensureTables");
+__name2(ensureTables, "ensureTables");
 function html(tasks, stats) {
   const taskData = JSON.stringify(tasks.map((t) => ({ id: t.id, title: t.title || "", status: t.status || "todo", priority: t.priority || "medium", assignee: t.assignee || "", project: t.project || "general", created_at: t.created_at || "" })));
   return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -133,8 +135,8 @@ function renderBoard(){
       return;
     }
     body.innerHTML = groups[col].map(t =>
-      '<div class="card card-'+t.priority+'" onclick="advance(\''+t.id+'\',\''+t.status+'\')" title="Click to advance status">'+
-      '<button class="card-del" onclick="event.stopPropagation();del(\''+t.id+'\')">x</button>'+
+      '<div class="card card-'+t.priority+'" onclick="advance(''+t.id+'',''+t.status+'')" title="Click to advance status">'+
+      '<button class="card-del" onclick="event.stopPropagation();del(''+t.id+'')">x</button>'+
       '<div class="card-title">'+esc(t.title)+'</div>'+
       '<div class="card-meta"><span class="card-pri" style="background:'+( PRI_COLORS[t.priority]||PRI_COLORS.medium)+'"></span>'+
       t.priority+' / '+t.project+' / '+(t.assignee||'unassigned')+'</div></div>'
@@ -197,15 +199,18 @@ renderBoard();
 <\/script></body></html>`;
 }
 __name(html, "html");
+__name2(html, "html");
 var worker_default = {
   async fetch(request, env) {
     const url = new URL(request.url);
     const p = url.pathname;
     const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET,POST,PATCH,DELETE,OPTIONS", "Access-Control-Allow-Headers": "Content-Type" };
-    if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
+    if (request.method === "OPTIONS")
+      return new Response(null, { status: 204, headers: cors });
     try {
       await ensureTables(env.DB);
-      if (p === "/api/health" || p === "/health") return Response.json({ status: "ok", service: "cadence", ts: Date.now() });
+      if (p === "/api/health" || p === "/health")
+        return Response.json({ status: "ok", service: "cadence", ts: Date.now() });
       if (p === "/api/tasks" && request.method === "GET") {
         const rows2 = await env.DB.prepare("SELECT * FROM collab_tasks ORDER BY created_at DESC LIMIT 100").all();
         return Response.json({ tasks: rows2.results }, { headers: cors });
@@ -231,8 +236,10 @@ var worker_default = {
           const completedAt = body.status === "done" ? (/* @__PURE__ */ new Date()).toISOString() : null;
           await env.DB.prepare("UPDATE collab_tasks SET status=?, completed_at=? WHERE id=?").bind(body.status, completedAt, id).run();
         }
-        if (body.title) await env.DB.prepare("UPDATE collab_tasks SET title=? WHERE id=?").bind(body.title, id).run();
-        if (body.assignee !== void 0) await env.DB.prepare("UPDATE collab_tasks SET assignee=? WHERE id=?").bind(body.assignee, id).run();
+        if (body.title)
+          await env.DB.prepare("UPDATE collab_tasks SET title=? WHERE id=?").bind(body.title, id).run();
+        if (body.assignee !== void 0)
+          await env.DB.prepare("UPDATE collab_tasks SET assignee=? WHERE id=?").bind(body.assignee, id).run();
         return Response.json({ updated: id }, { headers: cors });
       }
       if (taskMatch && request.method === "DELETE") {
@@ -256,5 +263,5 @@ var worker_default = {
 export {
   worker_default as default
 };
-//# sourceMappingURL=worker.js.map
+//# sourceMappingURL=index.js.map
 
